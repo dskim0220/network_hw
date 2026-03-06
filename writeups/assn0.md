@@ -1,17 +1,17 @@
 Assignment 0 Writeup
 =============
 
-My name: [your name here]
+My name: [KIM DAESUNG]
 
-My POVIS ID: [your povis id here]
+My POVIS ID: [daesungkim]
 
-My student ID (numeric): [your student id here]
+My student ID (numeric): [20210888]
 
-This assignment took me about [n] hours to do (including the time on studying, designing, and writing the code).
+This assignment took me about [5] hours to do (including the time on studying, designing, and writing the code).
 
-My secret code from section 2.1 was: [code here]
+My secret code from section 2.1 was: [b55607405e]
 
-- Optional: I had unexpected difficulty with: [describe]
+- Optional: I had unexpected difficulty with: [I spent quite much time to be familiar with modern C++ style because I was used to procedual programming of C. ]
 
 - Optional: I think you could make this lab better by: [describe]
 

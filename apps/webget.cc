@@ -11,12 +11,12 @@ void get_URL(const string &host, const string &path) {
     TCPSocket socket;
     socket.connect(Address(host, "http"));
 
-    socket.write("GET "+ path + " HTTP/1.1\r\n");
+    socket.write("GET " + path + " HTTP/1.1\r\n");
     socket.write("Host: " + host + "\r\n");
     socket.write("Connection: close\r\n");
     socket.write("\r\n");
 
-    while(!socket.eof()){
+    while (!socket.eof()) {
         cout << socket.read();
     }
     // You will need to connect to the "http" service on
@@ -27,8 +27,8 @@ void get_URL(const string &host, const string &path) {
     // (not just one call to read() -- everything) until you reach
     // the "eof" (end of file).
 
-    //cerr << "Function called: get_URL(" << host << ", " << path << ").\n";
-    //cerr << "Warning: get_URL() has not been implemented yet.\n";
+    // cerr << "Function called: get_URL(" << host << ", " << path << ").\n";
+    // cerr << "Warning: get_URL() has not been implemented yet.\n";
 }
 
 int main(int argc, char *argv[]) {
