@@ -6,7 +6,7 @@
 // automated checks run by `make check_lab2`.
 
 template <typename... Targs>
-void DUMMY_CODE(Targs &&... /* unused */) {}
+void DUMMY_CODE(Targs &&.../* unused */) {}
 
 using namespace std;
 
@@ -14,8 +14,8 @@ using namespace std;
 //! \param n The input absolute 64-bit sequence number
 //! \param isn The initial sequence numberu
 WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
-    //DUMMY_CODE(n, isn);
-    uint32_t wrapped = isn.raw_value()+(uint32_t)n;
+    // DUMMY_CODE(n, isn);
+    uint32_t wrapped = isn.raw_value() + static_cast<uint32_t>(n);
     return WrappingInt32(wrapped);
 }
 
@@ -30,11 +30,11 @@ WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
 //! and the other stream runs from the remote TCPSender to the local TCPReceiver and
 //! has a different ISN.
 uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint) {
-    //DUMMY_CODE(n, isn, checkpoint);
-    //return {};
-    uint32_t diff = n.raw_value() - isn.raw_value() - (uint32_t)checkpoint;
-    int64_t abseq = checkpoint + (int32_t)diff;
-    if(abseq<0)
-        abseq += (1ull)<<32;
+    // DUMMY_CODE(n, isn, checkpoint);
+    // return {};
+    uint32_t diff = n.raw_value() - isn.raw_value() - static_cast<uint32_t>(checkpoint);
+    int64_t abseq = checkpoint + static_cast<int32_t>(diff);
+    if (abseq < 0)
+        abseq += (1ull) << 32;
     return abseq;
 }
