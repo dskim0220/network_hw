@@ -35,10 +35,30 @@ This method first receives the time since the method was last called until it is
 This method creates a segment with length 0. First, seqno is set by wrapping _next_seqno, and then it is placed in the _segments_out queue.]
 
 Implementation Challenges:
-[]
+[   1. Variable Identification and State Management
+
+The most difficult part of the implementation was determining which additional
+variables were required beyond the starter code. I had to introduce members
+such as _outstanding for tracking segments, _current_rto for the timeout,
+and _is_timer_running to manage the timer state. Deciding on the types and
+initialization of these variables early in the development was a hurdle.
+I resolved this by meticulously re-reading the assignment specs, focusing
+on method definitions and rules for outstanding segments. I mapped out every
+value that needed to be tracked and iteratively refined the variable set
+during implementation, removing unnecessary components as the logic matured.
+
+    2.FIN Flag Logic and Boundary Conditions
+I encountered a specific challenge while handling the FIN flag logic.
+Originally, I only checked if a FIN had been sent (_fin_sent == 0) before
+setting the flag, but I neglected to verify if the stream had actually
+reached EOF. This caused the flag to be set incorrectly. To fix this, I
+re-examined the state transition rules for the FIN flag and revised the
+code to ensure the flag is only triggered when both conditions—no prior
+FIN sent and reaching the end of the stream—are satisfied.]
 
 Remaining Bugs:
-[]
+[One potential edge case concerns the "Zero Window" persistence. When the receiver's window size is zero, the current implementation intentionally avoids doubling the RTO or increasing the consecutive retransmission count, adhering to the standard zero-window probing behavior. While it is correct for probing, the code does not implement a definitive timeout or a maximum retry limit specifically for a persistent zero-window state.
+Aside from the limitation, the implementation has been verified to pass all provided test cases and handles standard packet loss and reordering.]
 
 - Optional: I had unexpected difficulty with: [describe]
 
