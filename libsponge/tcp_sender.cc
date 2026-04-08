@@ -10,7 +10,7 @@
 // automated checks run by `make check_lab3`.
 
 template <typename... Targs>
-void DUMMY_CODE(Targs &&... /* unused */) {}
+void DUMMY_CODE(Targs &&.../* unused */) {}
 
 using namespace std;
 
@@ -29,21 +29,19 @@ TCPSender::TCPSender(const size_t capacity, const uint16_t retx_timeout, const s
     , _last_acked_seqno(0)
     , _is_timer_running(false)
     , _syn_sent(false)
-    ,_fin_sent(false){}
+    , _fin_sent(false) {}
 
-uint64_t TCPSender::bytes_in_flight() const { 
-    return _bytes_in_flight; 
-}
+uint64_t TCPSender::bytes_in_flight() const { return _bytes_in_flight; }
 
 void TCPSender::fill_window() {
     size_t window_size = _last_window_size ? _last_window_size : 1;
 
-    while(window_size > _bytes_in_flight){
+    while (window_size > _bytes_in_flight) {
         TCPSegment seg;
 
-        if(!_syn_sent){
-            seg.header().syn=true;
-            _syn_sent=true;
+        if (!_syn_sent) {
+            seg.header().syn = true;
+            _syn_sent = true;
         }
 
         size_t available = window_size - _bytes_in_flight;
@@ -53,12 +51,12 @@ void TCPSender::fill_window() {
 
         seg.payload() = Buffer(std::move(content));
 
-        if(!_fin_sent && stream_in().eof() && available > seg.length_in_sequence_space()){
-            seg.header().fin =true;
+        if (!_fin_sent && stream_in().eof() && available > seg.length_in_sequence_space()) {
+            seg.header().fin = true;
             _fin_sent = true;
         }
 
-        if(seg.length_in_sequence_space()==0){
+        if (seg.length_in_sequence_space() == 0) {
             break;
         }
 
@@ -70,27 +68,26 @@ void TCPSender::fill_window() {
         _next_seqno += seg.length_in_sequence_space();
         _bytes_in_flight += seg.length_in_sequence_space();
 
-        if(!_is_timer_running){
+        if (!_is_timer_running) {
             _is_timer_running = true;
             _elapsed_time = 0;
         }
-
     }
 }
 
 //! \param ackno The remote receiver's ackno (acknowledgment number)
 //! \param window_size The remote receiver's advertised window size
-void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_size) { 
-    //DUMMY_CODE(ackno, window_size);
+void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_size) {
+    // DUMMY_CODE(ackno, window_size);
     uint64_t abs_ackno = unwrap(ackno, _isn, _next_seqno);
 
-    if(abs_ackno > _next_seqno){
+    if (abs_ackno > _next_seqno) {
         return;
     }
 
     _last_window_size = window_size;
 
-    if(abs_ackno > _last_acked_seqno){
+    if (abs_ackno > _last_acked_seqno) {
         _last_acked_seqno = abs_ackno;
 
         _current_rto = _initial_retransmission_timeout;
@@ -98,20 +95,19 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
         _elapsed_time = 0;
     }
 
-    while(!_outstanding.empty()){
+    while (!_outstanding.empty()) {
         TCPSegment &temp = _outstanding.front();
         uint64_t seg_abs_seqno = unwrap(temp.header().seqno, _isn, _next_seqno);
 
-        if(seg_abs_seqno + temp.length_in_sequence_space() <= abs_ackno){
+        if (seg_abs_seqno + temp.length_in_sequence_space() <= abs_ackno) {
             _bytes_in_flight -= temp.length_in_sequence_space();
             _outstanding.pop();
-        }
-        else{
+        } else {
             break;
         }
     }
 
-    if(_outstanding.empty()){
+    if (_outstanding.empty()) {
         _is_timer_running = false;
     }
 
@@ -119,18 +115,19 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
 }
 
 //! \param[in] ms_since_last_tick the number of milliseconds since the last call to this method
-void TCPSender::tick(const size_t ms_since_last_tick) { 
-    //DUMMY_CODE(ms_since_last_tick);
-    if(!_is_timer_running) return;
-    
+void TCPSender::tick(const size_t ms_since_last_tick) {
+    // DUMMY_CODE(ms_since_last_tick);
+    if (!_is_timer_running)
+        return;
+
     _elapsed_time += ms_since_last_tick;
 
-    if(_elapsed_time >= _current_rto){
-        if(!_outstanding.empty()){
+    if (_elapsed_time >= _current_rto) {
+        if (!_outstanding.empty()) {
             _segments_out.push(_outstanding.front());
         }
 
-        if(_last_window_size > 0){
+        if (_last_window_size > 0) {
             _consecutive_retransmissions++;
             _current_rto *= 2;
         }
