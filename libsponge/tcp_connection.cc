@@ -32,17 +32,45 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
    if(seg.header().rst){
         _receiver.stream_out().set_error();
         _sender.stream_in().set_error();
+        _active = false;
         return;
    }
    
    _receiver.segment_received(seg);
    if(seg.header().ack){
-        _sender.ack_received(_receiver.ackno(),_receiver.window_size());
+        _sender.ack_received(seg.header().ackno,seg.header().win);
    }
 
+   if(seg.length_in_sequence_space()>0){
+        _sender.fill_window();
+        if(_sender.segments_out().empty()){
+            _sender.send_empty_segment();
+        }
+   }
+
+   if(_receiver.ackno().has_value() && (seg.length_in_sequence_space()==0) && 
+        seg.header().seqno == _receiver.ackno().value()-1){
+        _sender.send_empty_segment();
+   }
+
+   while(!_sender.segments_out().empty()){
+        TCPSegment temp_seg = _sender.segments_out().front();
+        _sender.segments_out().pop();
+
+        if(_receiver.ackno().has_value()){
+            temp_seg.header().ack = true;
+            temp_seg.header().ackno = _receiver.ackno().value();
+        }
+
+        temp_seg.header().win = _receiver.window_size();
+        _segments_out.push(temp_seg);
+   }
 }
 
-bool TCPConnection::active() const { return {}; }
+bool TCPConnection::active() const { 
+    //return {};
+    return _active; 
+}
 
 size_t TCPConnection::write(const string &data) {
     DUMMY_CODE(data);
