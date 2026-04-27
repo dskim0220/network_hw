@@ -30,8 +30,16 @@ size_t TCPConnection::time_since_last_segment_received() const {
 
 void TCPConnection::segment_received(const TCPSegment &seg) { 
    if(seg.header().rst){
-        _receiver.stream_out().error();
-   } 
+        _receiver.stream_out().set_error();
+        _sender.stream_in().set_error();
+        return;
+   }
+   
+   _receiver.segment_received(seg);
+   if(seg.header().ack){
+        _sender.ack_received(_receiver.ackno(),_receiver.window_size());
+   }
+
 }
 
 bool TCPConnection::active() const { return {}; }
