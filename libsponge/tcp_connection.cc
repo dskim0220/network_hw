@@ -53,7 +53,8 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
         _sender.send_empty_segment();
    }
 
-   while(!_sender.segments_out().empty()){
+   push_segments_out();
+   /*while(!_sender.segments_out().empty()){
         TCPSegment temp_seg = _sender.segments_out().front();
         _sender.segments_out().pop();
 
@@ -64,7 +65,7 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
 
         temp_seg.header().win = _receiver.window_size();
         _segments_out.push(temp_seg);
-   }
+   }*/
 }
 
 bool TCPConnection::active() const { 
@@ -73,8 +74,24 @@ bool TCPConnection::active() const {
 }
 
 size_t TCPConnection::write(const string &data) {
-    DUMMY_CODE(data);
-    return {};
+    //DUMMY_CODE(data);
+    //return {};
+    size_t written_len = _sender.stream_in().write(data);
+    _sender.fill_window();
+    push_segments_out();
+    /*while(!_sender.segments_out().empty()){
+        TCPSegment temp_seg = _sender.segments_out().front();
+        _sender.segments_out().pop();
+
+        if(_receiver.ackno().has_value()){
+            temp_seg.header().ack = true;
+            temp_seg.header().ackno = _receiver.ackno().value();
+        }
+
+        temp_seg.header().win = _receiver.window_size();
+        _segments_out.push(temp_seg);
+    }*/
+    return written_len;
 }
 
 //! \param[in] ms_since_last_tick number of milliseconds since the last call to this method
@@ -82,7 +99,23 @@ void TCPConnection::tick(const size_t ms_since_last_tick) { DUMMY_CODE(ms_since_
 
 void TCPConnection::end_input_stream() {}
 
-void TCPConnection::connect() {}
+void TCPConnection::connect() {
+    _sender.fill_window();
+    push_segments_out();
+    /*while(!_sender.segments_out().empty()){
+        TCPSegment temp_seg = _sender.segments_out().front();
+        _sender.segments_out().pop();
+
+        if(_receiver.ackno().has_value()){
+            temp_seg.header().ack = true;
+            temp_seg.header().ackno = _receiver.ackno().value();
+        }
+
+        temp_seg.header().win = _receiver.window_size();
+        _segments_out.push(temp_seg);
+    }*/
+
+}
 
 TCPConnection::~TCPConnection() {
     try {
@@ -93,5 +126,20 @@ TCPConnection::~TCPConnection() {
         }
     } catch (const exception &e) {
         std::cerr << "Exception destructing TCP FSM: " << e.what() << std::endl;
+    }
+}
+
+void TCPConnection::push_segments_out(){
+    while(!_sender.segments_out().empty()){
+        TCPSegment temp_seg = _sender.segments_out().front();
+        _sender.segments_out().pop();
+
+        if(_receiver.ackno().has_value()){
+            temp_seg.header().ack = true;
+            temp_seg.header().ackno = _receiver.ackno().value();
+        }
+
+        temp_seg.header().win = _receiver.window_size();
+        _segments_out.push(temp_seg);
     }
 }

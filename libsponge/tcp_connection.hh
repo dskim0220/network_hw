@@ -84,9 +84,10 @@ class TCPConnection {
     //! Construct a new connection from a configuration
     explicit TCPConnection(const TCPConfig &cfg) : _cfg{cfg} {}
 
+    void push_segments_out();
     //! \name construction and destruction
     //! moving is allowed; copying is disallowed; default construction not possible
-
+    
     //!@{
     ~TCPConnection();  //!< destructor sends a RST if the connection is still open
     TCPConnection() = delete;
