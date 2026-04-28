@@ -29,7 +29,9 @@ size_t TCPConnection::time_since_last_segment_received() const {
 }
 
 void TCPConnection::segment_received(const TCPSegment &seg) { 
-   if(seg.header().rst){
+    _time_since_last_recv = 0;
+
+    if(seg.header().rst){
         _receiver.stream_out().set_error();
         _sender.stream_in().set_error();
         _active = false;
@@ -95,7 +97,47 @@ size_t TCPConnection::write(const string &data) {
 }
 
 //! \param[in] ms_since_last_tick number of milliseconds since the last call to this method
-void TCPConnection::tick(const size_t ms_since_last_tick) { DUMMY_CODE(ms_since_last_tick); }
+void TCPConnection::tick(const size_t ms_since_last_tick) { 
+    //DUMMY_CODE(ms_since_last_tick);
+     _sender.tick(ms_since_last_tick);
+     _time_since_last_recv += ms_since_last_tick;
+
+     if(_sender.consecutive_retransmissions() > TCPConfig::MAX_RETX_ATTEMPTS){
+        _active = false;
+        _receiver.stream_out().set_error();
+        _sender.stream_in().set_error();
+
+        while(!_sender.segments_out().empty()){
+            _sender.segments_out().pop();
+        }
+        _sender.send_empty_segment();
+        TCPSegment target = _sender.segments_out().front();
+        _sender.segments_out().pop();
+
+        target.header().rst = true;
+        _sender.segments_out().push(target);
+                
+        push_segments_out();
+
+        return;
+     }
+
+     bool condition1 = _receiver.unassembled_bytes()==0 && _receiver.stream_out().input_ended();
+     bool condition2 = (_sender.next_seqno_absolute() == _sender.stream_in().bytes_read()+2)&&
+     (_sender.bytes_in_flight()==0);
+     bool condition3 = (_sender.bytes_in_flight()==0);
+
+     if(condition1 && condition2 && condition3){
+        if(_linger_after_streams_finish == false){
+            _active = false;
+        }
+        else if(_time_since_last_recv >= 10 * _cfg.rt_timeout){
+                _active = false;
+        }
+     }
+     push_segments_out();
+     return;
+}
 
 void TCPConnection::end_input_stream() {}
 

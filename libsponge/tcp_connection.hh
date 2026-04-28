@@ -22,6 +22,8 @@ class TCPConnection {
     bool _linger_after_streams_finish{true};
 
     bool _active{true};
+
+    size_t _time_since_last_recv{0};
   public:
     //! \name "Input" interface for the writer
     //!@{
