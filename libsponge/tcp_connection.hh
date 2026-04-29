@@ -24,6 +24,7 @@ class TCPConnection {
     bool _active{true};
 
     size_t _time_since_last_recv{0};
+
   public:
     //! \name "Input" interface for the writer
     //!@{
@@ -89,7 +90,7 @@ class TCPConnection {
     void push_segments_out();
     //! \name construction and destruction
     //! moving is allowed; copying is disallowed; default construction not possible
-    
+
     //!@{
     ~TCPConnection();  //!< destructor sends a RST if the connection is still open
     TCPConnection() = delete;
