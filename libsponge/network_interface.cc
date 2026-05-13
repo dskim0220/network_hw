@@ -133,4 +133,19 @@ optional<InternetDatagram> NetworkInterface::recv_frame(const EthernetFrame &fra
 }
 
 //! \param[in] ms_since_last_tick the number of milliseconds since the last call to this method
-void NetworkInterface::tick(const size_t ms_since_last_tick) { DUMMY_CODE(ms_since_last_tick); }
+void NetworkInterface::tick(const size_t ms_since_last_tick) { 
+    //DUMMY_CODE(ms_since_last_tick);
+    for(auto itr=_arp_table.begin();itr != _arp_table.end(); ){
+        if(itr->second.ttl <= ms_since_last_tick){
+            itr = _arp_table.erase(it);
+        }
+        else{
+            itr->second.ttl-=ms_since_last_tick;
+            itr++;
+        }
+    }
+    
+    for(auto itr=_arp_timer.begin();itr!=_arp_timer.end();itr++){
+        itr->second += ms_since_last_tick;
+    }
+}
