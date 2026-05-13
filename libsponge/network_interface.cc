@@ -83,16 +83,16 @@ optional<InternetDatagram> NetworkInterface::recv_frame(const EthernetFrame &fra
 
     if(frame.header().type == EthernetHeader::TYPE_IPv4){
         InternetDatagram dgram;
-        ParseResult result = dgram.parse(frame.payload());
-        if(result.get_error() == ParseResult::NoError){
+        //ParseResult result = dgram.parse(frame.payload());
+        if(dgram.parse(frame.payload()) == ParseResult::NoError){
             return dgram;
         }
     }
 
     else if(frame.header().type == EthernetHeader::TYPE_ARP){
         ARPMessage arp_msg;
-        ParseResult result = arp_msg.parse(frame.payload());
-        if(result.get_error() == ParseResult::NoError){
+        //ParseResult result = arp_msg.parse(frame.payload());
+        if(arp_msg.parse(frame.payload()) == ParseResult::NoError){
             _arp_table[arp_msg.sender_ip_address]={arp_msg.sender_ethernet_address,30000};
 
             if(arp_msg.opcode==ARPMessage::OPCODE_REQUEST && arp_msg.target_ip_address == _ip_address.ipv4_numeric()){
@@ -137,7 +137,7 @@ void NetworkInterface::tick(const size_t ms_since_last_tick) {
     //DUMMY_CODE(ms_since_last_tick);
     for(auto itr=_arp_table.begin();itr != _arp_table.end(); ){
         if(itr->second.ttl <= ms_since_last_tick){
-            itr = _arp_table.erase(it);
+            itr = _arp_table.erase(itr);
         }
         else{
             itr->second.ttl-=ms_since_last_tick;
