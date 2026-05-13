@@ -2,7 +2,6 @@
 
 #include "util.hh"
 
-#include <array>
 #include <arpa/inet.h>
 #include <array>
 #include <cstring>
