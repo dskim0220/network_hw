@@ -66,7 +66,28 @@ void Router::route_one_datagram(InternetDatagram &dgram) {
         }
     }
 
+    if(best_match_idx==-1){
+        return;
+    }
+
+    if(dgram.header().ttl == 0 || dgram.header().ttl == 1){
+        return;
+    }
+
+    dgram.header().ttl--;
     
+    
+    if(_routing_table[best_match_idx].next_hop == std::nullopt){
+        Address final_next_hop = Address::from_ipv4_numeric(dgram.header().dst);
+        size_t out_interface = _routing_table[best_match_idx].interface_num;
+        interface(out_interface).send_datagram(dgram,final_next_hop); 
+    }
+    else{
+        Address final_next_hop = _routing_table[best_match_idx].next_hop.value();
+        size_t out_interface = _routing_table[best_match_idx].interface_num;
+        interface(out_interface).send_datagram(dgram,final_next_hop);
+    }
+
 }
 
 void Router::route() {
