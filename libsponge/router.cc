@@ -40,6 +40,32 @@ void Router::add_route(const uint32_t route_prefix,
 void Router::route_one_datagram(InternetDatagram &dgram) {
     //DUMMY_CODE(dgram);
     // Your code here.
+    uint32_t dest = dgram.header().dst;
+    
+    int best_match_idx = -1;
+    int best_match_length = -1;
+
+    for(size_t i=0; i<_routing_table.size();i++){
+        if(_routing_table[i].prefix_length==0){
+            if(best_match_idx == -1){
+                best_match_idx = i;
+                best_match_length = 0;
+            } 
+        }
+        else{
+            uint8_t length = _routing_table[i].prefix_length;
+
+            uint32_t xor_result = _routing_table[i].route_prefix ^ dest;
+            xor_result = xor_result >> (32-length);
+            if(xor_result == 0){
+                if(length > best_match_length){
+                    best_match_idx = i;
+                    best_match_length = length;
+                }
+            }
+        }
+    }
+
     
 }
 
