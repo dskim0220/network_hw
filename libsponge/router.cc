@@ -31,12 +31,16 @@ void Router::add_route(const uint32_t route_prefix,
 
     DUMMY_CODE(route_prefix, prefix_length, next_hop, interface_num);
     // Your code here.
+    RouteEntry entry = {route_prefix,prefix_length,next_hop,interface_num};
+    _routing_table.pushback(entry);
+
 }
 
 //! \param[in] dgram The datagram to be routed
 void Router::route_one_datagram(InternetDatagram &dgram) {
-    DUMMY_CODE(dgram);
+    //DUMMY_CODE(dgram);
     // Your code here.
+    
 }
 
 void Router::route() {
