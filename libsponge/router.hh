@@ -49,7 +49,7 @@ class Router {
     void route_one_datagram(InternetDatagram &dgram);
 
   private:
-    struct RouteEntry{
+    struct RouteEntry {
         uint32_t route_prefix;
         uint8_t prefix_length;
         std::optional<Address> next_hop;

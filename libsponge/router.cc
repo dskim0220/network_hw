@@ -16,7 +16,7 @@ using namespace std;
 // You will need to add private members to the class declaration in `router.hh`
 
 template <typename... Targs>
-void DUMMY_CODE(Targs &&... /* unused */) {}
+void DUMMY_CODE(Targs &&.../* unused */) {}
 
 //! \param[in] route_prefix The "up-to-32-bit" IPv4 address prefix to match the datagram's destination address against
 //! \param[in] prefix_length For this route to be applicable, how many high-order (most-significant) bits of the route_prefix will need to match the corresponding bits of the datagram's destination address?
@@ -31,34 +31,32 @@ void Router::add_route(const uint32_t route_prefix,
 
     DUMMY_CODE(route_prefix, prefix_length, next_hop, interface_num);
     // Your code here.
-    RouteEntry entry = {route_prefix,prefix_length,next_hop,interface_num};
-    _routing_table.pushback(entry);
-
+    RouteEntry entry = {route_prefix, prefix_length, next_hop, interface_num};
+    _routing_table.push_back(entry);
 }
 
 //! \param[in] dgram The datagram to be routed
 void Router::route_one_datagram(InternetDatagram &dgram) {
-    //DUMMY_CODE(dgram);
-    // Your code here.
+    // DUMMY_CODE(dgram);
+    //  Your code here.
     uint32_t dest = dgram.header().dst;
-    
+
     int best_match_idx = -1;
     int best_match_length = -1;
 
-    for(size_t i=0; i<_routing_table.size();i++){
-        if(_routing_table[i].prefix_length==0){
-            if(best_match_idx == -1){
+    for (size_t i = 0; i < _routing_table.size(); i++) {
+        if (_routing_table[i].prefix_length == 0) {
+            if (best_match_idx == -1) {
                 best_match_idx = i;
                 best_match_length = 0;
-            } 
-        }
-        else{
+            }
+        } else {
             uint8_t length = _routing_table[i].prefix_length;
 
             uint32_t xor_result = _routing_table[i].route_prefix ^ dest;
-            xor_result = xor_result >> (32-length);
-            if(xor_result == 0){
-                if(length > best_match_length){
+            xor_result = xor_result >> (32 - length);
+            if (xor_result == 0) {
+                if (length > best_match_length) {
                     best_match_idx = i;
                     best_match_length = length;
                 }
@@ -66,28 +64,25 @@ void Router::route_one_datagram(InternetDatagram &dgram) {
         }
     }
 
-    if(best_match_idx==-1){
+    if (best_match_idx == -1) {
         return;
     }
 
-    if(dgram.header().ttl == 0 || dgram.header().ttl == 1){
+    if (dgram.header().ttl == 0 || dgram.header().ttl == 1) {
         return;
     }
 
     dgram.header().ttl--;
-    
-    
-    if(_routing_table[best_match_idx].next_hop == std::nullopt){
+
+    if (_routing_table[best_match_idx].next_hop == std::nullopt) {
         Address final_next_hop = Address::from_ipv4_numeric(dgram.header().dst);
         size_t out_interface = _routing_table[best_match_idx].interface_num;
-        interface(out_interface).send_datagram(dgram,final_next_hop); 
-    }
-    else{
+        interface(out_interface).send_datagram(dgram, final_next_hop);
+    } else {
         Address final_next_hop = _routing_table[best_match_idx].next_hop.value();
         size_t out_interface = _routing_table[best_match_idx].interface_num;
-        interface(out_interface).send_datagram(dgram,final_next_hop);
+        interface(out_interface).send_datagram(dgram, final_next_hop);
     }
-
 }
 
 void Router::route() {
